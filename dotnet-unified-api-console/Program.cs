@@ -7,6 +7,7 @@ using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.OData.Client;
 using System.Net.Http;
 
 #endregion
@@ -38,13 +39,11 @@ namespace MicrosoftGraphSampleConsole
                 case 'b':
                     Console.WriteLine("\nRunning app-only mode, followed by user mode\n\n");
                     Requests.AppMode();
-                    var appModeTask = Task.Run(() => Requests.UserMode());
-                    appModeTask.Wait();
+                    Requests.UserMode();
                     break;
                 case 'u':
                     Console.WriteLine("\nRunning in user mode\n\n");
-                    var userModeTask = Task.Run(() => Requests.UserMode());
-                    userModeTask.Wait();
+                    Requests.UserMode();
                     break;
                 default:
                     Console.WriteLine("\nSelection not recognized. Running in user mode\n\n");

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using microsoft.graph;
+using Microsoft.Graph;
 
 namespace MicrosoftGraphSampleConsole
 {
@@ -10,50 +10,35 @@ namespace MicrosoftGraphSampleConsole
         public static string TokenForUser;
 
         /// <summary>
-        /// Async task to acquire token for Application.
-        /// </summary>
-        /// <returns>Async Token for application.</returns>
-        public static async Task<string> AcquireTokenAsyncForApplication()
-        {
-            return GetTokenForApplication();
-        }
-
-        /// <summary>
-        /// Get Token for Application.
-        /// </summary>
-        /// <returns>Token for application.</returns>
-        public static string GetTokenForApplication()
-        {
-            string authority = Constants.AuthString + Constants.TenantId;
-            AuthenticationContext authenticationContext = new AuthenticationContext(authority, false);
-            // Config for OAuth client credentials 
-            ClientCredential clientCred = new ClientCredential(Constants.ClientIdForAppAuthn, Constants.ClientSecret);
-            AuthenticationResult authenticationResult = authenticationContext.AcquireToken(Constants.ResourceUrl,
-                clientCred);
-            string token = authenticationResult.AccessToken;
-            return token;
-        }
-
-        /// <summary>
         /// Get Active Directory Client for Application.
         /// </summary>
         /// <returns>ActiveDirectoryClient for Application.</returns>
-        public static GraphService GetActiveDirectoryClientAsApplication()
+        public static GraphServiceClient GetActiveDirectoryClientAsApplication()
         {
             Uri servicePointUri = new Uri(Constants.Url);
             Uri serviceRoot = new Uri(servicePointUri, Constants.TenantId);
-            GraphService activeDirectoryClient = new GraphService(serviceRoot,
-                async () => await AcquireTokenAsyncForApplication());
-            return activeDirectoryClient;
+            return new GraphServiceClient(
+                new AppConfig
+                {
+                    ActiveDirectoryAppId = Constants.ClientIdForAppAuthn,
+                    ActiveDirectoryClientSecret = Constants.ClientSecret,
+                    ActiveDirectoryReturnUrl = Constants.redirectUriForUserAuthn,
+                    ActiveDirectoryServiceEndpointUrl = Constants.Url,
+                    ActiveDirectoryServiceResource = Constants.ResourceUrl,
+                },
+                new AdalCredentialCache(),
+                new HttpProvider(),
+                new AdalServiceInfoProvider(),
+                ClientType.Business);
         }
 
         /// <summary>
         /// Async task to acquire token for User.
         /// </summary>
         /// <returns>Token for user.</returns>
-        public static async Task<string> AcquireTokenAsyncForUser()
+        public static Task<string> AcquireTokenAsyncForUser()
         {
-            return GetTokenForUser();
+            return Task.FromResult(GetTokenForUser());
         }
 
         /// <summary>
@@ -81,13 +66,21 @@ namespace MicrosoftGraphSampleConsole
         /// Get Active Directory Client for User.
         /// </summary>
         /// <returns>ActiveDirectoryClient for User.</returns>
-        public static GraphService GetActiveDirectoryClientAsUser()
+        public static GraphServiceClient GetActiveDirectoryClientAsUser()
         {
-            
-            Uri serviceRoot = new Uri(Constants.Url);
-            GraphService graphClient = new GraphService(serviceRoot, 
-                async () => await AcquireTokenAsyncForUser()); 
-            return graphClient;
+            return new GraphServiceClient(
+                new AppConfig
+                {
+                    ActiveDirectoryAppId = Constants.ClientIdForUserAuthn,
+                    //ActiveDirectoryClientSecret = clientSecret,
+                    ActiveDirectoryReturnUrl = Constants.redirectUriForUserAuthn,
+                    ActiveDirectoryServiceEndpointUrl = Constants.Url,
+                    ActiveDirectoryServiceResource = Constants.ResourceUrl,
+                },
+                new AdalCredentialCache(),
+                new HttpProvider(),
+                new AdalServiceInfoProvider(),
+                ClientType.Business);
         }
     }
 }
